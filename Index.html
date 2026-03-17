@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="AutiTrack"/>
+<meta name="theme-color" content="#667eea"/>
+<link rel="manifest" href="manifest.json"/>
+<title>AutiTrack</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;min-height:100vh;max-width:430px;margin:0 auto;position:relative;}
+  
+  /* Header */
+  .header{background:linear-gradient(135deg,#667eea,#764ba2);padding:20px 20px 24px;color:white;position:relative;}
+  .header-sub{font-size:12px;opacity:0.75;margin-bottom:4px;}
+  .header-name{font-size:22px;font-weight:700;}
+  .header-stats{font-size:12px;opacity:0.65;margin-top:4px;}
+  .affirmation{background:rgba(255,255,255,0.15);border-radius:12px;padding:12px 14px;margin-top:14px;font-size:13px;line-height:1.6;font-style:italic;}
+
+  /* Nav */
+  .nav{display:flex;background:white;border-top:1px solid #f0f0f0;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:100;}
+  .nav-btn{flex:1;border:none;background:none;padding:8px 0 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;}
+  .nav-icon{font-size:20px;}
+  .nav-label{font-size:10px;color:#9ca3af;font-weight:500;}
+  .nav-btn.active .nav-label{color:#667eea;}
+
+  /* Content */
+  .content{padding:16px;padding-bottom:80px;min-height:calc(100vh - 120px);}
+
+  /* Cards */
+  .card{background:white;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+  .card-title{font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;}
+
+  /* Journal */
+  .journal-textarea{width:100%;border:1px solid #e5e7eb;border-radius:10px;padding:12px;font-size:14px;font-family:inherit;resize:none;min-height:90px;outline:none;color:#374151;line-height:1.6;}
+  .journal-textarea:focus{border-color:#667eea;}
+  .mood-row{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap;}
+  .mood-btn{padding:5px 12px;border-radius:20px;border:1.5px solid #e5e7eb;background:white;font-size:12px;cursor:pointer;font-weight:500;color:#9ca3af;transition:all 0.15s;}
+  .mood-btn.sel-great{border-color:#4ade80;background:#f0fdf4;color:#16a34a;}
+  .mood-btn.sel-good{border-color:#60a5fa;background:#eff6ff;color:#2563eb;}
+  .mood-btn.sel-hard{border-color:#f87171;background:#fef2f2;color:#dc2626;}
+  .save-btn{width:100%;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:12px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
+
+  /* Entry list */
+  .entry{background:white;border-radius:14px;padding:14px;margin-bottom:10px;border-left:4px solid #e5e7eb;}
+  .entry.great{border-left-color:#4ade80;}
+  .entry.good{border-left-color:#60a5fa;}
+  .entry.hard{border-left-color:#f87171;}
+  .entry-meta{display:flex;justify-content:space-between;margin-bottom:6px;}
+  .entry-date{font-size:12px;color:#9ca3af;}
+  .entry-text{font-size:14px;color:#374151;line-height:1.5;}
+  .ai-praise{background:#faf5ff;border-radius:10px;padding:10px 12px;margin-top:8px;font-size:13px;color:#7c3aed;line-height:1.5;font-style:italic;}
+
+  /* Milestones */
+  .milestone{background:white;border-radius:14px;padding:14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:12px;}
+  .milestone-icon{width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .milestone-title{font-size:14px;font-weight:600;color:#374151;}
+  .milestone-meta{font-size:12px;color:#9ca3af;margin-top:2px;}
+  .insight-card{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:14px;padding:16px;border:1px solid #bbf7d0;margin-bottom:12px;}
+  .insight-title{font-size:13px;font-weight:600;color:#16a34a;margin-bottom:6px;}
+  .insight-text{font-size:13px;color:#374151;line-height:1.6;}
+
+  /* Chat */
+  .chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 200px);}
+  .chat-messages{flex:1;overflow-y:auto;padding-bottom:8px;}
+  .bubble-row{display:flex;margin-bottom:12px;}
+  .bubble-row.user{justify-content:flex-end;}
+  .bubble{max-width:80%;padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.5;}
+  .bubble.ai{background:white;color:#374151;border-radius:18px 18px 18px 4px;box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+  .bubble.user{background:linear-gradient(135deg,#667eea,#764ba2);color:white;border-radius:18px 18px 4px 18px;}
+  .chat-input-row{display:flex;gap:8px;background:white;border-radius:14px;padding:10px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+  .chat-input{flex:1;border:none;outline:none;font-size:14px;color:#374151;font-family:inherit;}
+  .chat-send{background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:10px;padding:8px 14px;cursor:pointer;font-size:16px;}
+
+  /* Motivation */
+  .quote-card{background:linear-gradient(135deg,#667eea,#764ba2);border-radius:18px;padding:20px;margin-bottom:12px;color:white;}
+  .quote-text{font-size:15px;line-height:1.7;font-style:italic;margin-bottom:10px;}
+  .quote-author{font-size:12px;opacity:0.75;text-align:right;}
+  .praise-card{background:white;border-radius:14px;padding:16px;margin-bottom:10px;border-left:4px solid #a78bfa;}
+  .praise-title{font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:6px;}
+  .praise-text{font-size:14px;color:#374151;line-height:1.6;}
+
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:flex-end;justify-content:center;}
+  .modal{background:white;border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:430px;}
+  .modal-title{font-size:18px;font-weight:700;color:#374151;margin-bottom:16px;}
+  .modal-input{width:100%;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;margin-bottom:10px;outline:none;}
+  .modal-input:focus{border-color:#667eea;}
+  .modal-btn{width:100%;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:12px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;}
+  .hidden{display:none;}
+
+  /* Celebration */
+  .celebrate{text-align:center;padding:20px 0;}
+  .celebrate-emoji{font-size:48px;margin-bottom:12px;}
+  .celebrate-title{font-size:20px;font-weight:700;color:#374151;margin-bottom:8px;}
+  .celebrate-text{font-size:14px;color:#6b7280;line-height:1.6;}
+</style>
+</head>
+<body>
+
+<!-- Onboarding Modal -->
+<div class="modal-overlay" id="onboarding">
+  <div class="modal">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:48px;margin-bottom:8px;">🧩</div>
+      <div style="font-size:22px;font-weight:700;color:#374151;">Welcome to AutiTrack</div>
+      <div style="font-size:14px;color:#9ca3af;margin-top:6px;">Your daily companion for this journey</div>
+    </div>
+    <input class="modal-input" id="parentName" placeholder="Your name (e.g. Sarah)"/>
+    <input class="modal-input" id="childName" placeholder="Your child's name (e.g. Aiden)"/>
+    <input class="modal-input" id="childAge" placeholder="Your child's age (e.g. 6)" type="number"/>
+    <button class="modal-btn" onclick="saveProfile()">Let's begin →</button>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="header" id="appHeader">
+  <div class="header-sub">Tracking journey of</div>
+  <div class="header-name" id="headerName">Your child 🧩</div>
+  <div class="header-stats" id="headerStats">Start logging to track progress</div>
+  <div class="affirmation" id="dailyAffirmation"></div>
+</div>
+
+<!-- Content -->
+<div class="content" id="mainContent">
+</div>
+
+<!-- Bottom Nav -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="setTab('journal')" id="nav-journal">
+    <span class="nav-icon">📓</span>
+    <span class="nav-label">Journal</span>
+  </button>
+  <button class="nav-btn" onclick="setTab('milestones')" id="nav-milestones">
+    <span class="nav-icon">⭐</span>
+    <span class="nav-label">Milestones</span>
+  </button>
+  <button class="nav-btn" onclick="setTab('chat')" id="nav-chat">
+    <span class="nav-icon">🤖</span>
+    <span class="nav-label">AI Guide</span>
+  </button>
+  <button class="nav-btn" onclick="setTab('motivation')" id="nav-motivation">
+    <span class="nav-icon">💜</span>
+    <span class="nav-label">You Matter</span>
+  </button>
+</nav>
+
+<script>
+// ── State ──────────────────────────────────────────────
+let state = {
+  profile: null,
+  entries: [],
+  milestones: [],
+  messages: [],
+  mood: 'good',
+  tab: 'journal'
+};
+
+// ── Affirmations ───────────────────────────────────────
+const affirmations = [
+  "Every moment you show up for your child rewires their world for the better.",
+  "You are not just a parent. You are your child's greatest advocate and safe place.",
+  "The patience you show today plants seeds you may not see bloom for years — but they will.",
+  "Raising a child who experiences the world differently takes extraordinary love. You have it.",
+  "On the hardest days, remember: you are exactly the parent your child needs.",
+  "You notice things about your child that no one else in the world would notice. That is a gift.",
+  "Progress is not always visible. But you are changing your child's life every single day.",
+  "Rest is not giving up. Rest is how you keep going.",
+  "You are doing better than you think. Far better.",
+  "Your child is lucky — not despite their challenges, but because they have you."
+];
+
+// ── AI Praise responses ────────────────────────────────
+const praises = [
+  n => `The way you described today shows how deeply you understand ${n}. That attunement — noticing the small things — is what makes you an extraordinary parent.`,
+  n => `What you shared about ${n} today is remarkable. You didn't just observe — you felt it with them. That emotional presence is irreplaceable.`,
+  n => `Even on hard days like today, you kept showing up. That consistency is literally building ${n}'s sense of safety and security. You may not see it yet, but it's happening.`,
+  n => `You noticed something today that many parents would have missed. That awareness — that deep knowing of your child — is a skill you've built through love and attention.`,
+  n => `The fact that you're taking time to document ${n}'s journey shows the kind of intentional, thoughtful parenting that changes outcomes. You are doing something that matters.`
+];
+
+// ── Milestone library (sample — key ages) ─────────────
+const milestoneLibrary = {
+  communication: [
+    "Used a word spontaneously",
+    "Made a request without prompting",
+    "Combined two words",
+    "Responded to name consistently",
+    "Started a conversation",
+    "Used 'I want' phrase",
+    "Answered a question about their day"
+  ],
+  social: [
+    "Made eye contact during preferred activity",
+    "Greeted a familiar person",
+    "Played alongside another child",
+    "Showed an object to share interest",
+    "Engaged in back-and-forth interaction"
+  ],
+  sensory: [
+    "Tolerated a new food texture",
+    "Stayed in a crowded place for 10 minutes",
+    "Accepted a change in routine calmly",
+    "Used a calming strategy independently"
+  ],
+  regulation: [
+    "Recovered from meltdown within 20 minutes",
+    "Communicated feeling overwhelmed",
+    "Accepted comfort from caregiver",
+    "Used words instead of behaviour to express emotion"
+  ]
+};
+
+// ── Quotes ─────────────────────────────────────────────
+const quotes = [
+  { text: "Autism is not a tragedy. Ignorance is the tragedy.", author: "— Stuart Duncan" },
+  { text: "Every child is a different kind of flower, and all together make this world a beautiful garden.", author: "— Unknown" },
+  { text: "You don't have to be perfect to be an amazing parent.", author: "— Unknown" },
+  { text: "The most important thing a parent can give a child is their time.", author: "— Unknown" },
+  { text: "Children with autism are colourful — they are often very beautiful and, like the rainbow, they stand out.", author: "— Adele Devine" },
+  { text: "Be the one who nurtures and builds. Be the one who has an understanding and a forgiving heart.", author: "— H. Jackson Brown Jr." },
+  { text: "You are braver than you believe, stronger than you seem, and more loved than you know.", author: "— A.A. Milne" }
+];
+
+// ── Init ───────────────────────────────────────────────
+function init() {
+  const saved = localStorage.getItem('autitrack');
+  if (saved) {
+    state = JSON.parse(saved);
+    document.getElementById('onboarding').classList.add('hidden');
+    updateHeader();
+    setTab('journal');
+  } else {
+    document.getElementById('onboarding').classList.remove('hidden');
+  }
+  // Set daily affirmation
+  const idx = new Date().getDate() % affirmations.length;
+  document.getElementById('dailyAffirmation').textContent = '"' + affirmations[idx] + '"';
+}
+
+function save() {
+  localStorage.setItem('autitrack', JSON.stringify(state));
+}
+
+function saveProfile() {
+  const name = document.getElementById('parentName').value.trim();
+  const child = document.getElementById('childName').value.trim();
+  const age = document.getElementById('childAge').value.trim();
+  if (!child) { alert('Please enter your child\'s name'); return; }
+  state.profile = { parentName: name || 'You', childName: child, childAge: age };
+  state.messages = [{
+    role: 'ai',
+    text: `Hi ${name || 'there'}! I'm here to support you and help track ${child}'s beautiful journey. How was today?`
+  }];
+  save();
+  document.getElementById('onboarding').classList.add('hidden');
+  updateHeader();
+  setTab('journal');
+}
+
+function updateHeader() {
+  if (!state.profile) return;
+  const { childName, childAge, parentName } = state.profile;
+  document.getElementById('headerName').textContent = `${childName}${childAge ? ', ' + childAge + ' yrs' : ''} 🧩`;
+  document.getElementById('headerStats').textContent =
+    `${state.entries.length} journal entries · ${state.milestones.length} milestones reached`;
+}
+
+// ── Tabs ───────────────────────────────────────────────
+function setTab(tab) {
+  state.tab = tab;
+  ['journal','milestones','chat','motivation'].forEach(t => {
+    document.getElementById('nav-' + t).classList.toggle('active', t === tab);
+  });
+  renderContent();
+}
+
+function renderContent() {
+  const el = document.getElementById('mainContent');
+  if (state.tab === 'journal') el.innerHTML = renderJournal();
+  else if (state.tab === 'milestones') el.innerHTML = renderMilestones();
+  else if (state.tab === 'chat') el.innerHTML = renderChat();
+  else if (state.tab === 'motivation') el.innerHTML = renderMotivation();
+  bindEvents();
+}
+
+// ── Journal Tab ────────────────────────────────────────
+function renderJournal() {
+  const child = state.profile ? state.profile.childName : 'your child';
+  let entriesHtml = state.entries.slice(0,10).map((e, i) => `
+    <div class="entry ${e.mood}">
+      <div class="entry-meta">
+        <span class="entry-date">${e.date}</span>
+        <span>${e.mood === 'great' ? '🌟' : e.mood === 'good' ? '😊' : '💙'}</span>
+      </div>
+      <div class="entry-text">${e.text}</div>
+      ${e.praise ? `<div class="ai-praise">✨ ${e.praise}</div>` : ''}
+    </div>
+  `).join('');
+
+  return `
+    <div class="card">
+      <div class="card-title">Today's entry</div>
+      <textarea class="journal-textarea" id="journalText" placeholder="How was today? Any wins, challenges, therapy notes, seizures, breakthroughs..."></textarea>
+      <div class="mood-row">
+        <button class="mood-btn ${state.mood==='great'?'sel-great':''}" onclick="setMood('great')">🌟 Great day</button>
+        <button class="mood-btn ${state.mood==='good'?'sel-good':''}" onclick="setMood('good')">😊 Good day</button>
+        <button class="mood-btn ${state.mood==='hard'?'sel-hard':''}" onclick="setMood('hard')">💙 Hard day</button>
+      </div>
+      <button class="save-btn" onclick="saveEntry()">Save entry ✓</button>
+    </div>
+    ${state.entries.length > 0 ? `<div style="font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Recent entries</div>${entriesHtml}` : ''}
+  `;
+}
+
+function setMood(m) {
+  state.mood = m;
+  renderContent();
+}
+
+function saveEntry() {
+  const text = document.getElementById('journalText').value.trim();
+  if (!text) return;
+  const child = state.profile ? state.profile.childName : 'your child';
+  const praiseFn = praises[Math.floor(Math.random() * praises.length)];
+  const entry = {
+    date: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short'}),
+    text,
+    mood: state.mood,
+    praise: praiseFn(child),
+    ts: Date.now()
+  };
+  state.entries.unshift(entry);
+  // Auto-detect milestone keywords
+  detectMilestone(text, child);
+  save();
+  updateHeader();
+  renderContent();
+}
+
+function detectMilestone(text, child) {
+  const keywords = [
+    { words: ['said','spoke','word','talked','asked','told'], label: 'New communication moment', cat: 'Communication' },
+    { words: ['eye contact','looked at','smiled at'], label: 'Social connection moment', cat: 'Social' },
+    { words: ['calm','settled','regulated','self-'], label: 'Self-regulation moment', cat: 'Regulation' },
+    { words: ['tried','tasted','ate','food'], label: 'Sensory exploration', cat: 'Sensory' },
+    { words: ['played with','joined','together'], label: 'Play milestone', cat: 'Social' }
+  ];
+  const lower = text.toLowerCase();
+  keywords.forEach(k => {
+    if (k.words.some(w => lower.includes(w))) {
+      const already = state.milestones.find(m => m.label === k.label &&
+        m.date === new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short'}));
+      if (!already) {
+        state.milestones.unshift({
+          label: k.label,
+          category: k.cat,
+          date: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short'}),
+          note: text.substring(0, 80) + (text.length > 80 ? '...' : '')
+        });
+      }
+    }
+  });
+}
+
+// ── Milestones Tab ─────────────────────────────────────
+function renderMilestones() {
+  const child = state.profile ? state.profile.childName : 'your child';
+  const icons = { Communication: '💬', Social: '🤝', Sensory: '🌈', Regulation: '🧘', Play: '🎮' };
+
+  let list = state.milestones.length > 0
+    ? state.milestones.map(m => `
+        <div class="milestone">
+          <div class="milestone-icon">${icons[m.category] || '⭐'}</div>
+          <div>
+            <div class="milestone-title">${m.label}</div>
+            <div class="milestone-meta">${m.category} · ${m.date}</div>
+            ${m.note ? `<div style="font-size:12px;color:#9ca3af;margin-top:4px;font-style:italic;">"${m.note}"</div>` : ''}
+          </div>
+        </div>`)
+      .join('')
+    : `<div style="text-align:center;padding:30px;color:#9ca3af;font-size:14px;">Start logging daily entries — milestones will appear here automatically ✨</div>`;
+
+  const insight = state.entries.length >= 3
+    ? `<div class="insight-card">
+        <div class="insight-title">🤖 AI insight</div>
+        <div class="insight-text">Based on your recent entries, ${child} is showing consistent engagement and you are responding thoughtfully to every moment. Keep logging — patterns will emerge that will be meaningful to share with ${child}'s therapists and doctors.</div>
+      </div>`
+    : '';
+
+  return `
+    ${insight}
+    <div style="font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">
+      ${state.milestones.length} milestones reached 🎉
+    </div>
+    ${list}
+    <button class="save-btn" style="margin-top:8px;" onclick="showAddMilestone()">+ Add milestone manually</button>
+  `;
+}
+
+function showAddMilestone() {
+  const label = prompt('Describe the milestone:');
+  if (!label) return;
+  const cat = prompt('Category (Communication / Social / Sensory / Regulation):') || 'Communication';
+  state.milestones.unshift({
+    label, category: cat,
+    date: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short'}),
+    note: ''
+  });
+  save();
+  updateHeader();
+  renderContent();
+}
+
+// ── Chat Tab ───────────────────────────────────────────
+function renderChat() {
+  const child = state.profile ? state.profile.childName : 'your child';
+  const msgs = state.messages.map(m => `
+    <div class="bubble-row ${m.role}">
+      <div class="bubble ${m.role}">${m.text}</div>
+    </div>`).join('');
+
+  return `
+    <div class="chat-wrap">
+      <div class="chat-messages" id="chatMessages">${msgs}</div>
+      <div class="chat-input-row">
+        <input class="chat-input" id="chatInput" placeholder="Ask about ${child}'s progress..." onkeydown="if(event.key==='Enter')sendChat()"/>
+        <button class="chat-send" onclick="sendChat()">→</button>
+      </div>
+    </div>
+  `;
+}
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const child = state.profile ? state.profile.childName : 'your child';
+  const parent = state.profile ? state.profile.parentName : 'you';
+
+  state.messages.push({ role: 'user', text });
+
+  // Contextual AI responses based on keywords
+  let reply = '';
+  const lower = text.toLowerCase();
+  if (lower.includes('milestone') || lower.includes('progress')) {
+    reply = `${child} has reached ${state.milestones.length} milestones since you started tracking. Every single one of those represents a moment you were present enough to notice and celebrate. That is remarkable parenting, ${parent}.`;
+  } else if (lower.includes('hard') || lower.includes('difficult') || lower.includes('struggle') || lower.includes('tired')) {
+    reply = `What you're feeling is real and valid. Parenting a child with autism is one of the most demanding things a person can do — and you're doing it every day. Please be as kind to yourself as you are to ${child}. You deserve that same gentleness.`;
+  } else if (lower.includes('meltdown') || lower.includes('seizure')) {
+    reply = `That sounds like a really hard moment. You got through it — and so did ${child}. If you log what happened, I can help you track whether there are patterns in timing, triggers, or duration. That information can be really valuable to share with ${child}'s care team.`;
+  } else if (lower.includes('speech') || lower.includes('talk') || lower.includes('word')) {
+    reply = `Communication milestones for autistic children don't always follow the typical timeline — but they are happening. Any form of intentional communication, whether words, gestures, or pointing, is meaningful. What did you notice today?`;
+  } else if (lower.includes('therapy') || lower.includes('aba') || lower.includes('occupational')) {
+    reply = `Therapy is most powerful when it's reinforced at home — and the fact that you're logging ${child}'s daily experiences means you're extending that learning every day without even realising it. You are ${child}'s most important therapist.`;
+  } else if (lower.includes('tip') || lower.includes('help') || lower.includes('advice') || lower.includes('what should')) {
+    reply = `I'm here as a support and tracking companion, not a medical guide — but I'd suggest sharing what you've logged with ${child}'s therapist or paediatrician. Your detailed observations are genuinely valuable clinical data. Is there something specific you'd like to track more closely?`;
+  } else {
+    const responses = [
+      `That's really meaningful to share. Based on what you've been logging, ${child} is on a journey that's uniquely their own — and you are the most important guide in it.`,
+      `Thank you for sharing that. Every entry you make builds a picture of ${child}'s growth that no one else could create. You're doing something that truly matters.`,
+      `I hear you. Keep logging — even the small things. Patterns emerge over time that can be genuinely helpful for ${child}'s care team and for your own peace of mind.`
+    ];
+    reply = responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  state.messages.push({ role: 'ai', text: reply });
+  save();
+  renderContent();
+  setTimeout(() => {
+    const msgs = document.getElementById('chatMessages');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+  }, 50);
+}
+
+// ── Motivation Tab ─────────────────────────────────────
+function renderMotivation() {
+  const child = state.profile ? state.profile.childName : 'your child';
+  const parent = state.profile ? state.profile.parentName : 'You';
+  const todayQuote = quotes[new Date().getDate() % quotes.length];
+  const entriesThisWeek = state.entries.filter(e => {
+    const d = new Date(e.ts);
+    const now = new Date();
+    return (now - d) < 7 * 24 * 60 * 60 * 1000;
+  }).length;
+
+  return `
+    <div class="quote-card">
+      <div class="quote-text">${todayQuote.text}</div>
+      <div class="quote-author">${todayQuote.author}</div>
+    </div>
+
+    <div class="praise-card">
+      <div class="praise-title">💜 To you, ${parent}</div>
+      <div class="praise-text">You chose to track ${child}'s journey today. That decision — that act of intentional presence — is not small. It means you are paying attention, celebrating wins others might overlook, and building a record of growth that will matter for years to come. That is extraordinary parenting.</div>
+    </div>
+
+    ${entriesThisWeek > 0 ? `
+    <div class="praise-card">
+      <div class="praise-title">📊 This week</div>
+      <div class="praise-text">You've logged ${entriesThisWeek} ${entriesThisWeek === 1 ? 'entry' : 'entries'} this week. Every single one is an act of love and advocacy for ${child}. Keep going.</div>
+    </div>` : ''}
+
+    <div class="praise-card">
+      <div class="praise-title">🌱 Remember this</div>
+      <div class="praise-text">Progress with autism is not linear. Some days feel like steps backward. But you are playing a long game — and the consistency of your presence, your patience, and your love is compounding in ways you cannot yet see. Trust the process. Trust yourself.</div>
+    </div>
+
+    <div class="praise-card">
+      <div class="praise-title">🛌 And when you're exhausted...</div>
+      <div class="praise-text">Rest is not weakness. Rest is how you sustain yourself for ${child}. You are allowed to have hard days. You are allowed to need help. Asking for support is one of the strongest things a parent can do.</div>
+    </div>
+  `;
+}
+
+// ── Bind Events ────────────────────────────────────────
+function bindEvents() {
+  // Chat scroll
+  setTimeout(() => {
+    const msgs = document.getElementById('chatMessages');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+  }, 50);
+}
+
+// ── PWA Install ────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js');
+  });
+}
+
+// ── Start ──────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
